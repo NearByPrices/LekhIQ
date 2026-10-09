@@ -1,0 +1,55 @@
+{
+  "name": "lekhiq",
+  "version": "1.0.0",
+  "description": "Content Intelligence & Humanisation Tool",
+  "main": "index.js",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint . --ext .ts,.tsx",
+    "type-check": "tsc --noEmit",
+    "test": "vitest",
+    "test:ui": "vitest --ui"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/NearByPrices/LekhIQ.git"
+  },
+  "keywords": [
+    "AI",
+    "content",
+    "analysis",
+    "humanisation"
+  ],
+  "author": "NearByPrices",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/NearByPrices/LekhIQ/issues"
+  },
+  "homepage": "https://github.com/NearByPrices/LekhIQ#readme",
+  "dependencies": {
+    "@supabase/ssr": "^0.12.7",
+    "@supabase/supabase-js": "^2.117.3",
+    "@tailwindcss/postcss": "^4.3.3",
+    "@testing-library/jest-dom": "^7.0.1",
+    "@testing-library/react": "^16.3.3",
+    "@types/node": "^26.6.5",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "autoprefixer": "^10.6.1",
+    "cheerio": "^1.2.0",
+    "eslint": "^9.39.5",
+    "eslint-config-next": "^16.4.0",
+    "jsdom": "^29.1.1",
+    "mozilla-readability": "^0.1.3",
+    "next": "^16.4.0",
+    "postcss": "^8.5.29",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0",
+    "tailwindcss": "^4.3.3",
+    "typescript": "^6.0.3",
+    "vitest": "^5.0.3",
+    "zod": "^4.6.5"
+  }
+}
