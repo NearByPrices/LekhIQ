@@ -1,5 +1,7 @@
 import { ContentMetrics } from '@/types/analysis';
 
+export type { ContentMetrics };
+
 const SENTENCE_ENDINGS = /[.!?]+/g;
 const PARAGRAPH_SPLIT = /\n\n+/g;
 const WORD_PATTERN = /\b\w+\b/g;

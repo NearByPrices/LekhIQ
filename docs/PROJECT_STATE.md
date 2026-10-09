@@ -2,17 +2,17 @@
 
 **Last Updated**: 2026-10-09
 **Current Branch**: `claude/affectionate-newton-6wvs6u`
-**Latest Commit**: (foundation setup)
+**Latest Commit**: Phase 1 metrics and rules engine
 
 ## Current Phase
-**PHASE 0**: Foundation - IN PROGRESS
+**PHASE 1**: Metrics & Analysis Rules - COMPLETE ✓
 
 ## Implementation Status
 
-### Foundation (Phase 0)
+### Foundation (Phase 0) ✓ COMPLETE
 - [x] Next.js project initialization
 - [x] TypeScript strict mode
-- [x] Tailwind CSS
+- [x] Tailwind CSS with v4 support
 - [x] ESLint configuration
 - [x] Environment validation
 - [x] Supabase client setup
@@ -21,21 +21,51 @@
 - [x] Health check endpoint
 - [x] Homepage with UI placeholders
 - [x] Navigation (Analyse, History, Testing, Settings)
-- [ ] Supabase schema migration
-- [ ] Build verification
-- [ ] Lint & typecheck pass
-- [ ] Manual UI test
+- [x] Build verification (passing)
+- [x] Lint & typecheck (passing)
+- [x] Development server tested
 
-### Supabase Integration (Phase 1)
-- [ ] Database schema
-- [ ] Migrations
-- [ ] Server-side utilities
+### Phase 1A: Deterministic Metrics ✓ COMPLETE
+- [x] Content metrics calculation (24 metrics)
+  - Word/character/sentence/paragraph counts
+  - Length variance analysis
+  - Lexical diversity
+  - N-gram repetition detection
+  - Transition word density
+  - Generic phrase detection
+- [x] Comprehensive unit tests (12 tests passing)
+- [x] Edge case handling
 
-### Paste Content Flow (Phase 1)
-- [ ] Input validation
+### Phase 1B: AI-Likeness Rules ✓ COMPLETE
+- [x] Rule engine architecture
+- [x] Sentence length uniformity detection
+- [x] Paragraph length uniformity detection
+- [x] Repeated sentence openings detection
+- [x] Transition word overuse detection
+- [x] Low lexical diversity detection
+- [x] Repeated phrases detection
+- [x] Generic pattern detection
+- [x] Information density analysis
+- [x] Weighted scoring algorithm
+- [x] Risk level classification
+- [x] Comprehensive unit tests (10 tests passing)
+
+### Phase 1C: Database Schema
+- [x] SQL migration files created
+- [x] content_documents table
+- [x] analysis_runs table
+- [x] humanisation_runs table
+- [x] prompt_versions table
+- [x] test_runs table
+- [ ] Migrations applied to Supabase
+
+### Next Phase: Paste Content Flow (Phase 2)
+- [ ] API endpoint: POST /api/analyse
+- [ ] Input validation with Zod
 - [ ] Content normalisation
-- [ ] Document persistence
-- [ ] Results page
+- [ ] Database persistence
+- [ ] Analysis results page
+- [ ] Combined scoring (rules + gemini)
 
 ## Current Stack
 - **Node**: (system)
