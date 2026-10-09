@@ -1,125 +1,245 @@
 # LekhIQ - Handoff Document
 
-**Status**: Phase 1A/1B Complete - Ready for Phase 2
+**Status**: Phase 2 Foundation Complete - Ready for Gemini Integration
 **Last Updated**: 2026-10-09
 **Current Branch**: `claude/affectionate-newton-6wvs6u`
-**Latest Commit**: feat: implement deterministic metrics and AI-likeness rules engine
+**Latest Commits**:
+1. `1501763` - feat: add content analysis API endpoint and validation
+2. `5cbd121` - feat: implement deterministic metrics and AI-likeness rules engine
+3. `f73439f` - feat: establish LekhIQ foundation with Next.js and Tailwind
 
-## What's Completed
-- [x] Next.js project initialized with TypeScript and Tailwind
-- [x] Configuration files created (tsconfig, next.config, eslint, vitest)
-- [x] Project structure established
-- [x] Environment validation setup
-- [x] Supabase client utilities
-- [x] Type definitions for database models and analysis results
-- [x] Basic pages created (home, history, testing, settings)
-- [x] Navigation structure
-- [x] Project documentation
+## What's Been Completed
 
-## What's In Progress
-- [ ] Supabase schema creation (migrations)
-- [ ] Lint and typecheck
-- [ ] Build verification
-- [ ] Health endpoint test
+### Phase 0: Foundation ✓
+- Next.js 16 with TypeScript, Tailwind CSS v4, ESLint
+- All build, type-check, and dev server verified
+- Environment validation with Zod
+- Supabase client setup (browser, server, service role)
+- Basic UI shell with navigation
 
-## Files Changed
-### New files created:
-- package.json (updated with scripts)
-- tsconfig.json
-- next.config.js
-- tailwind.config.ts
-- postcss.config.js
-- .eslintrc.json
-- vitest.config.ts
-- src/app/layout.tsx
-- src/app/page.tsx
-- src/app/api/health/route.ts
-- src/app/history/page.tsx
-- src/app/testing/page.tsx
-- src/app/settings/page.tsx
-- src/components/AnalysisForm.tsx
-- src/lib/config/env.ts
-- src/lib/db/supabase.ts
-- src/types/database.ts
-- src/types/analysis.ts
-- src/styles/globals.css
-- CLAUDE.md
-- docs/PROJECT_STATE.md
-- docs/DATABASE.md
-- docs/ARCHITECTURE.md
-- docs/TODO.md
-- docs/DECISIONS.md
+### Phase 1: Deterministic Analysis ✓
+**Metrics Engine** (24+ metrics implemented):
+- Word/char/sentence/paragraph counts
+- Length variance analysis
+- Lexical diversity calculation
+- Repeated word/phrase detection (bigrams, trigrams)
+- Transition word density
+- Generic phrase detection
+- Sentence opening analysis
+- All tested (22 unit tests passing)
 
-## Tests Status
-- Not yet run (foundation still building)
+**AI-Likeness Rules Engine** (8 rules, transparent scoring):
+1. Sentence length uniformity detection
+2. Paragraph length uniformity detection
+3. Repeated sentence openings
+4. Excessive transition words
+5. Low lexical diversity
+6. Repeated phrases
+7. Generic introduction patterns
+8. Low information density
 
-## Known Problems
-None yet - foundation phase proceeding normally.
+**Scoring Algorithm**:
+- Individual rule weights (configurable)
+- Severity multipliers (high/medium)
+- Risk levels (low/moderate/high/very_high)
+- All rules tested (10 tests passing)
 
-## Immediate Next Steps
-1. **Create Supabase Migrations**
-   - Apply database schema from docs/DATABASE.md
-   - Create SQL migration files in repo
-   - Document in CHANGELOG.md
+### Phase 2: API & Validation ✓
+**Content Normalisation**:
+- Line ending standardisation
+- Whitespace handling
+- Blank line reduction
+- Title extraction
+- Word/character counting
 
-2. **Test Build**
-   ```bash
-   npm run lint
-   npm run type-check
-   npm run build
-   ```
+**Request Validation**:
+- Zod schemas for all requests
+- Type-safe request/response handling
+- Error responses with code and details
 
-3. **Test Health Endpoint**
-   ```bash
-   npm run dev
-   curl http://localhost:3000/api/health
-   ```
+**API Endpoint**: `POST /api/analyse`
+- Accepts paste content or URL type
+- Validates input (50-100k characters)
+- Normalises content
+- Calculates all metrics
+- Evaluates AI-likeness
+- Returns structured analysis
+- Comprehensive error handling
 
-4. **Commit Foundation**
-   ```bash
-   git add .
-   git commit -m "feat: establish LekhIQ foundation with Next.js, Supabase, Tailwind"
-   git push origin claude/affectionate-newton-6wvs6u
-   ```
+**Test Results**:
+- Endpoint tested live with curl
+- Returns AI-likeness score and risk level
+- Full request/response cycle working
 
-5. **Continue to Phase 1** (Deterministic Metrics)
-   - Implement word/sentence/paragraph counting
-   - Implement lexical diversity calculation
-   - Implement repeated word detection
-   - Write tests
-   - Create metrics endpoint
+## Database Schema (Ready to Apply)
 
-## Environment Requirements
-- Node.js 18+
-- npm 10+
-- Supabase project with URL and keys (already provided)
-- Gemini API key (needed for Phase 4)
+Migrations in `/migrations/`:
+1. `001_create_content_documents.sql` - Store source documents
+2. `002_create_analysis_runs.sql` - Store analysis results
+3. `003_create_humanisation_runs.sql` - Store rewrite results
+4. `004_create_supporting_tables.sql` - Prompt versions and test runs
 
-## Important Notes
-- .env.local is gitignored (safe to add secrets)
-- No authentication required yet
-- No payments/subscriptions
-- Internal testing only
-- Supabase migrations ready to apply
+All tables include proper indexes and foreign keys.
+
+## What Works Now
+
+✓ Health check endpoint: `GET /api/health`
+✓ Analysis endpoint: `POST /api/analyse`
+✓ Request validation with detailed errors
+✓ Content normalisation pipeline
+✓ 24 deterministic metrics calculation
+✓ AI-likeness rule engine with 8 transparent rules
+✓ Type-safe TypeScript throughout
+✓ Comprehensive test coverage (32 tests)
+✓ Production build verified
+✓ Development server working
+
+## What Needs Next (Priority Order)
+
+### Immediate (Phase 3)
+1. **Gemini Integration**
+   - Create AIProvider interface
+   - Implement GeminiProvider
+   - Add qualitative analysis
+   - Combine scores (rules + gemini)
+
+2. **Database Persistence**
+   - Apply migrations to Supabase
+   - Implement save to content_documents
+   - Save analysis_runs
+   - Query history
+
+3. **Results Page**
+   - Build results.tsx page
+   - Display metrics
+   - Display AI-likeness with signals
+   - Show comparison before/after (for humanisation)
+
+### Phase 4-5
+- Humanisation pipeline (light/natural/deep modes)
+- Protected entity preservation
+- Content quality scoring
+- Before/after comparison UI
+
+### Phase 6+
+- URL extraction with Cheerio + Mozilla Readability
+- SEO analysis
+- Long content chunking
+- File upload support
+- Internal testing lab
+
+## Files Recently Changed
+```
+migrations/
+├── 001_create_content_documents.sql
+├── 002_create_analysis_runs.sql
+├── 003_create_humanisation_runs.sql
+└── 004_create_supporting_tables.sql
+
+src/
+├── app/
+│   ├── api/
+│   │   ├── analyse/route.ts (NEW)
+│   │   └── health/route.ts
+│   └── ...
+├── lib/
+│   ├── analysis/
+│   │   ├── metrics.ts
+│   │   ├── metrics.test.ts
+│   │   ├── ai-likeness-rules.ts
+│   │   └── ai-likeness-rules.test.ts
+│   ├── content/
+│   │   └── normalisation.ts (NEW)
+│   └── validation/
+│       └── schemas.ts (NEW)
+```
+
+## Commands To Know
+
+```bash
+# Development
+npm run dev              # Start dev server (http://localhost:3000)
+
+# Testing
+npm test                 # Run all tests (Vitest)
+npm run type-check      # TypeScript type checking
+npm run lint            # ESLint check
+
+# Building
+npm run build           # Build for production
+npm start               # Start production server
+
+# Testing endpoints
+curl http://localhost:3000/api/health
+
+curl -X POST http://localhost:3000/api/analyse \
+  -H "Content-Type: application/json" \
+  -d '{"type":"paste","content":"...50+ words..."}'
+```
+
+## Environment Setup
+
+`.env.local` (already created):
+- `NEXT_PUBLIC_SUPABASE_URL`
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+- `SUPABASE_SERVICE_ROLE_KEY`
+- `GEMINI_API_KEY` (still needed)
+
+`.env.example` available for reference.
 
 ## Git Status
 ```
 Branch: claude/affectionate-newton-6wvs6u
-Latest commit: Add .gitignore
-Uncommitted: All foundation files (ready to add)
+Commits: 4 total (foundation + phase 1 + phase 2)
+All work committed and pushed to origin
+Working tree clean
 ```
 
-## Session Notes
-User provided Supabase credentials at session start. All environment variables validated. Next session should:
-1. Read this document
-2. Read PROJECT_STATE.md
-3. Check git status
-4. Create and apply Supabase migrations
-5. Test build and health endpoint
-6. Continue to Phase 1
+## Known Issues / Limitations
+- Gemini integration not yet implemented
+- Database not yet connected (migrations not applied)
+- Results UI not yet built
+- Humanisation not yet implemented
+- URL extraction not yet implemented
 
-## Files to Read Next Session
-- CLAUDE.md (project overview)
-- docs/PROJECT_STATE.md (current phase)
-- docs/DATABASE.md (schema to apply)
-- docs/ARCHITECTURE.md (understanding structure)
+## Important Decisions
+- Multi-component scoring (statistical + rules + gemini)
+- Never invent facts (humanisation validation)
+- Transparent AI-likeness score (show signals, not just number)
+- Conservative content normalisation (preserve original for comparison)
+- TypeScript strict mode throughout
+- All configuration centralized (weights, thresholds, prompts)
+
+## Next Session Checklist
+1. Read CLAUDE.md
+2. Read this HANDOFF.md
+3. `git status` - should be clean
+4. Review `docs/PROJECT_STATE.md`
+5. If needed, apply Supabase migrations manually
+6. Get Gemini API key from user
+7. Continue with Phase 3: Gemini integration
+
+## Quick Session Recovery
+If starting fresh:
+```bash
+cd /home/user/LekhIQ
+git status                    # Check branch
+npm install                   # Update deps if needed
+npm run dev                   # Test dev server
+npm test                      # Verify tests pass
+npm run build                 # Verify build works
+```
+
+All stable work has been pushed. Session output preserved in git history.
+
+---
+
+**Session Note**: This session built the complete analysis foundation from scratch. The project now has:
+- Robust metrics calculation (24 metrics, fully tested)
+- Transparent AI-likeness rules engine (8 rules, weighted scoring)
+- Working API endpoint (POST /api/analyse)
+- Type-safe validation throughout
+- Database schema ready to apply
+- Development environment ready for next phases
+
+Ready for Gemini integration and database persistence in next session.
