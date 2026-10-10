@@ -25,7 +25,7 @@ export class GeminiProvider implements AIProvider {
     this.rewriteModel = rewriteModel;
   }
 
-  async analyseContent(text: string): Promise<QualitativeAnalysisResult> {
+  async analyseContent(text: string): Promise<QualitativeAnalysisResult | null> {
     try {
       const model = this.client.getGenerativeModel({ model: this.analysisModel });
 
@@ -59,24 +59,9 @@ export class GeminiProvider implements AIProvider {
         keyObservations: parsed.keyObservations || [],
       };
     } catch (error) {
-      console.error('Gemini analysis error:', error);
-      // Return neutral scores if analysis fails
-      return {
-        structuralRepetition: 50,
-        lexicalPredictability: 50,
-        genericWording: 50,
-        sentenceUniformity: 50,
-        transitionOveruse: 50,
-        semanticRedundancy: 50,
-        informationDensity: 50,
-        specificity: 50,
-        naturalness: 50,
-        contextualDepth: 50,
-        toneConsistency: 50,
-        overallScore: 50,
-        reasoning: 'Analysis failed, returning neutral score',
-        keyObservations: ['Unable to perform detailed analysis'],
-      };
+      // Return null to indicate failure - do NOT return fake neutral scores
+      console.error('Gemini analysis failed:', error instanceof Error ? error.message : String(error));
+      return null;
     }
   }
 

@@ -36,7 +36,8 @@ export interface ValidationResult {
 }
 
 export interface AIProvider {
-  analyseContent(text: string): Promise<QualitativeAnalysisResult>;
+  // Returns null if analysis fails - do NOT return fake scores
+  analyseContent(text: string): Promise<QualitativeAnalysisResult | null>;
   humaniseContent(
     text: string,
     mode: 'light' | 'natural' | 'deep',

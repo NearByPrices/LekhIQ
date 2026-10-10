@@ -52,20 +52,29 @@ export async function POST(request: NextRequest) {
 
     // Run Gemini qualitative analysis
     let geminiAnalysis = null;
-    let geminiStatus = 'success';
+    let geminiStatus: 'success' | 'failed' | 'unavailable' = 'unavailable';
     try {
       const gemini = createGeminiProvider();
       geminiAnalysis = await gemini.analyseContent(normalised);
+      // If analyseContent returns null, Gemini is unavailable
+      if (geminiAnalysis === null) {
+        geminiStatus = 'unavailable';
+      } else {
+        geminiStatus = 'success';
+      }
     } catch (geminiError) {
-      console.warn('Gemini analysis failed, continuing without qualitative scores:', geminiError);
+      console.warn('Gemini analysis error:', geminiError instanceof Error ? geminiError.message : String(geminiError));
       geminiStatus = 'failed';
     }
 
-    // Combine scores with proper weighting: 35% statistical, 40% rules, 25% Gemini
-    const combinedScore = calculateCombinedScore(
+    // Combine scores with proper weighting
+    // When Gemini is unavailable: renormalise to 35% statistical + 65% rules
+    // When Gemini succeeds: 35% statistical + 40% rules + 25% Gemini
+    const { combinedScore, scoreStatus, effectiveWeights } = calculateScoringWithStatus(
       statisticalScore,
       rulesAnalysis.score,
-      geminiAnalysis?.overallScore
+      geminiAnalysis?.overallScore,
+      geminiStatus
     );
 
     // Save to database
@@ -146,7 +155,7 @@ export async function POST(request: NextRequest) {
           scores: {
             statistical: statisticalScore,
             rules: rulesAnalysis.score,
-            gemini: geminiAnalysis?.overallScore || null,
+            gemini: geminiStatus === 'success' ? geminiAnalysis?.overallScore : null,
             combined: combinedScore,
           },
           quality: {
@@ -155,17 +164,22 @@ export async function POST(request: NextRequest) {
             repetition: repetitionScore,
             informationDensity: informationDensityScore,
           },
-          qualitative: geminiAnalysis,
+          qualitative: geminiStatus === 'success' ? geminiAnalysis : null,
           combined: {
             score: combinedScore,
             riskLevel: getRiskLevel(combinedScore),
             components: {
               statistical: statisticalScore,
               rules: rulesAnalysis.score,
-              gemini: geminiAnalysis?.overallScore || null,
+              gemini: geminiStatus === 'success' ? geminiAnalysis?.overallScore : null,
             },
           },
-          geminiStatus,
+          scoring: {
+            status: scoreStatus,
+            geminiStatus,
+            effectiveWeights,
+            missingComponents: geminiStatus !== 'success' ? ['gemini'] : [],
+          },
         },
         timestamp: new Date().toISOString(),
         saved: !!contentDocumentId,
@@ -186,21 +200,51 @@ export async function POST(request: NextRequest) {
   }
 }
 
-function calculateCombinedScore(
+interface ScoringResult {
+  combinedScore: number;
+  scoreStatus: 'complete' | 'partial';
+  effectiveWeights: {
+    statistical: number;
+    rules: number;
+    gemini: number | null;
+  };
+}
+
+function calculateScoringWithStatus(
   statisticalScore: number,
   rulesScore: number,
-  geminiScore?: number
-): number {
-  if (geminiScore === null || geminiScore === undefined) {
-    // If Gemini unavailable, use weighted average of statistical and rules only
-    // Reweight to 35% statistical and 65% rules (sum to 100)
-    return Math.round(statisticalScore * 0.35 + rulesScore * 0.65);
+  geminiScore: number | undefined | null,
+  geminiStatus: 'success' | 'failed' | 'unavailable'
+): ScoringResult {
+  if (geminiStatus !== 'success' || !geminiScore) {
+    // Gemini unavailable: renormalise to 35% statistical + 65% rules
+    const totalAvailable = 35 + 40; // Only statistical and rules available
+    const statWeight = 35 / totalAvailable;
+    const rulesWeight = 40 / totalAvailable;
+
+    return {
+      combinedScore: Math.round(statisticalScore * statWeight + rulesScore * rulesWeight),
+      scoreStatus: 'partial',
+      effectiveWeights: {
+        statistical: Math.round(statWeight * 100),
+        rules: Math.round(rulesWeight * 100),
+        gemini: null,
+      },
+    };
   }
 
-  // Full weighting: 35% statistical, 40% rules, 25% Gemini
-  return Math.round(
-    statisticalScore * 0.35 + rulesScore * 0.4 + geminiScore * 0.25
-  );
+  // All components available: 35% statistical + 40% rules + 25% Gemini
+  return {
+    combinedScore: Math.round(
+      statisticalScore * 0.35 + rulesScore * 0.4 + geminiScore * 0.25
+    ),
+    scoreStatus: 'complete',
+    effectiveWeights: {
+      statistical: 35,
+      rules: 40,
+      gemini: 25,
+    },
+  };
 }
 
 function getRiskLevel(score: number): 'low' | 'moderate' | 'high' | 'very_high' {
