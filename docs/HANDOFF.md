@@ -1,9 +1,42 @@
 # LekhIQ - Handoff Document
 
-**Status**: Phase 6 Complete - Quality Scoring & History Management  
+**Status**: Phase 6 - STABILIZATION COMPLETE ✓  
 **Last Updated**: 2026-10-10  
 **Current Branch**: `claude/affectionate-newton-6wvs6u`  
+**Build**: Internal Testing Build (NOT production-ready)
 **Test Coverage**: 39 tests passing  
+
+## ⚠️ CRITICAL: DO NOT START HUMANISATION YET
+
+**All acceptance criteria from stabilization phase have been met:**
+✓ Removed fake Gemini scores  
+✓ Implemented proper partial scoring  
+✓ Fixed Supabase authentication  
+✓ Strengthened prompt injection defence  
+✓ All tests passing  
+✓ Documentation complete  
+
+**BUT: External dependencies have critical issues:**
+✗ **Gemini API**: All models return 404 (API key issue)
+✗ **Supabase**: Network connectivity failing
+
+**The system WORKS correctly** with graceful degradation, but:
+- Analyses complete successfully (deterministic analysis only)
+- Scores are clearly marked as "partial"
+- No fake scores are used
+- User is informed of missing components
+
+**BEFORE STARTING PHASE 7 (HUMANISATION):**
+
+1. [ ] Resolve Gemini API access or choose available model
+2. [ ] Resolve Supabase network connectivity  
+3. [ ] Test full end-to-end flow with working dependencies
+4. [ ] Verify database persistence actually saves data
+5. [ ] Confirm history page retrieves saved analyses
+
+**Start Phase 7 ONLY when all of above are resolved.**
+
+---  
 
 ## Completed Phases (0-6)
 
@@ -343,16 +376,36 @@ GEMINI_REWRITE_MODEL=gemini-2.0-flash
 
 ## Summary
 
-LekhIQ has successfully completed phases 0-6, implementing:
-- Robust content analysis with 24+ metrics
-- Transparent AI-likeness detection with 8 rules
-- Quality scoring across 5 dimensions
-- Combined scoring with proper weighting (35%/40%/25%)
-- Database persistence and history tracking
-- Professional UI for results and history
-- Graceful error handling throughout
-- 39 comprehensive unit tests
+LekhIQ has successfully completed stabilization work (Phase 6):
+- ✓ Robust content analysis with 24+ metrics
+- ✓ Transparent AI-likeness detection with 8 rules
+- ✓ Quality scoring across 5 dimensions
+- ✓ Combined scoring with proper weighting (35%/40%/25%)
+- ✓ Proper partial scoring when components unavailable
+- ✓ No fake neutral scores (critical fix)
+- ✓ Graceful error handling throughout
+- ✓ 39 comprehensive unit tests
+- ✓ Strong prompt injection defence
+- ✓ Comprehensive documentation of issues and workarounds
 
-The system is production-ready for internal testing with clear next steps for humanisation (Phase 7) and advanced features (Phase 8+).
+**Current Status**: Internal testing build - NOT production-ready
+- Deterministic analysis: ✓ WORKING
+- Gemini integration: ⚠ API unavailable (gracefully handled)
+- Supabase persistence: ⚠ Network issue (gracefully handled)
+- All analysis still completes: ✓ YES
 
-**Next developer**: Implement Phase 7 humanisation features following the tasks listed above. Start with the UI, then endpoint, then entity protection and validation. Reference Phase 5-6 commits for pattern consistency.
+See `docs/STABILIZATION_REPORT.md` and `docs/BUGS_AND_LIMITATIONS.md` for complete details.
+
+## IMPORTANT: Before Phase 7
+
+**DO NOT IMPLEMENT HUMANISATION** until:
+
+1. Gemini API is confirmed working (resolve API key issue or choose available model)
+2. Supabase connectivity is confirmed working (resolve network issue)
+3. Full end-to-end tests pass with both dependencies available
+4. Database persistence is verified working
+
+The analysis system is stable and gracefully handles missing external dependencies, but humanisation requires reliable Gemini API access.
+
+**Next developer**: 
+After resolving the above prerequisites, follow the Phase 7 plan in `docs/STABILIZATION_REPORT.md`. The foundation for humanisation is already in place (prompts, provider interface, database schema). Implement the UI flow first, then API endpoint, then entity protection. Reference recent commits (Phase 5-6) for code patterns and error handling style.
