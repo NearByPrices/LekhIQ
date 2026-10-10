@@ -3,21 +3,29 @@
 **Last Updated**: 2026-10-10  
 **Current Branch**: `claude/affectionate-newton-6wvs6u`  
 **Build Type**: Internal Testing Build (NOT production-ready)  
-**Status**: STABILIZATION IN PROGRESS
+**Status**: DIAGNOSTICS COMPLETE ✓
 
-## ⚠️ CRITICAL LIMITATIONS
+## ⚠️ EXTERNAL DEPENDENCY ISSUES (NOT CODE BUGS)
 
-1. **Gemini API Unavailable**: All models return 404 (API key issue)
-   - Status: Gracefully degraded (no fake scores)
-   - Workaround: System functions with deterministic analysis only
-   - See docs/BUGS_AND_LIMITATIONS.md
+**Both issues have been precisely diagnosed and documented:**
 
-2. **Supabase Persistence**: Network fetch errors
-   - Status: Affects data persistence only, analysis still works
-   - Workaround: Analyses complete but not saved to database
-   - See docs/BUGS_AND_LIMITATIONS.md
+1. **Gemini API**: All models return HTTP 404
+   - **Root Cause**: API key lacks generative model access (account/project issue)
+   - **Status**: Gracefully degraded (no fake scores, returns null)
+   - **Workaround**: System functions with deterministic analysis only
+   - **Action Required**: Outside repository (verify API key or create new one)
+   - **Diagnostic Tool**: `node scripts/test-gemini.js`
+   - **Documentation**: See `docs/EXTERNAL_DEPENDENCIES_DIAGNOSIS.md`
 
-**These limitations must be resolved before production use.**
+2. **Supabase**: Network cannot resolve DNS
+   - **Root Cause**: Cloud environment blocked from Supabase infrastructure (network policy)
+   - **Status**: Affects data persistence only, analysis still works
+   - **Workaround**: Analyses complete but not saved to database
+   - **Action Required**: Outside repository (configure network access or deploy elsewhere)
+   - **Diagnostic Tool**: `node scripts/test-supabase.js`
+   - **Documentation**: See `docs/EXTERNAL_DEPENDENCIES_DIAGNOSIS.md`
+
+**System is fully functional for analysis despite both external issues.**
 
 ## Current Phase
 **PHASE 6**: Analysis Stabilization - IN PROGRESS  

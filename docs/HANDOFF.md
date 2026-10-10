@@ -6,35 +6,50 @@
 **Build**: Internal Testing Build (NOT production-ready)
 **Test Coverage**: 39 tests passing  
 
-## ⚠️ CRITICAL: DO NOT START HUMANISATION YET
+## ⚠️ CRITICAL: EXTERNAL DEPENDENCIES REQUIRE ACTION
 
-**All acceptance criteria from stabilization phase have been met:**
-✓ Removed fake Gemini scores  
-✓ Implemented proper partial scoring  
-✓ Fixed Supabase authentication  
-✓ Strengthened prompt injection defence  
-✓ All tests passing  
-✓ Documentation complete  
+**Diagnostic Status**: COMPLETE ✓
 
-**BUT: External dependencies have critical issues:**
-✗ **Gemini API**: All models return 404 (API key issue)
-✗ **Supabase**: Network connectivity failing
+Both blocker issues have been precisely diagnosed:
 
-**The system WORKS correctly** with graceful degradation, but:
-- Analyses complete successfully (deterministic analysis only)
-- Scores are clearly marked as "partial"
-- No fake scores are used
-- User is informed of missing components
+### 1. Gemini API (HTTP 404)
+- **Root Cause**: API key lacks generative model access
+- **External Issue**: Not a code bug
+- **Test Command**: `node scripts/test-gemini.js`
+- **User Action Needed**: 
+  - Go to Google Cloud Console
+  - Verify API key has access to "Google Generative AI"
+  - Confirm billing is active
+  - Create new API key if needed
+  - Update `.env.local` with working key
+
+### 2. Supabase (DNS ENOTFOUND)
+- **Root Cause**: Cloud environment cannot reach Supabase DNS
+- **External Issue**: Not a code bug
+- **Test Command**: `node scripts/test-supabase.js`
+- **User Action Needed**:
+  - Verify cloud environment network policy
+  - Check if supabase.co is blocked by firewall
+  - Deploy to environment with external DNS access
+  - OR contact infrastructure team
+
+**The system WORKS correctly** with graceful degradation:
+- ✓ Analyses complete successfully (deterministic analysis only)
+- ✓ Scores are clearly marked as "partial"
+- ✓ No fake scores are used
+- ✓ User is informed of missing components
+- ✓ 39/39 tests passing
+- ✓ Build succeeds
 
 **BEFORE STARTING PHASE 7 (HUMANISATION):**
 
-1. [ ] Resolve Gemini API access or choose available model
-2. [ ] Resolve Supabase network connectivity  
-3. [ ] Test full end-to-end flow with working dependencies
-4. [ ] Verify database persistence actually saves data
-5. [ ] Confirm history page retrieves saved analyses
+1. [ ] Resolve Gemini API: `node scripts/test-gemini.js` → should show ✅ RECOMMENDED MODEL
+2. [ ] Resolve Supabase: `node scripts/test-supabase.js` → should show ✅ SUPABASE CONNECTIVITY: WORKING
+3. [ ] Test full end-to-end flow with both dependencies working
+4. [ ] Verify database persistence saves and retrieves data
+5. [ ] Confirm history page displays saved analyses
 
-**Start Phase 7 ONLY when all of above are resolved.**
+**Start Phase 7 ONLY when both tests pass successfully.**
 
 ---  
 
