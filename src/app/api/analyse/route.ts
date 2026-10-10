@@ -3,6 +3,7 @@ import { AnalyseRequestSchema } from '@/lib/validation/schemas';
 import { normaliseContent } from '@/lib/content/normalisation';
 import { evaluateAILikeness } from '@/lib/analysis/ai-likeness-rules';
 import { calculateMetrics } from '@/lib/analysis/metrics';
+import { createGeminiProvider } from '@/lib/ai/providers/gemini';
 
 export async function POST(request: NextRequest) {
   try {
@@ -28,12 +29,21 @@ export async function POST(request: NextRequest) {
     const wordCount = normalised.match(/\b\w+\b/g)?.length || 0;
     const characterCount = normalised.length;
 
-    // Run analysis
+    // Run deterministic analysis
     const metrics = calculateMetrics(normalised);
-    const aiLikeness = evaluateAILikeness(normalised);
+    const rulesAnalysis = evaluateAILikeness(normalised);
 
-    // TODO: Save to database
-    // TODO: Call Gemini for qualitative analysis
+    // Run Gemini qualitative analysis
+    let geminiAnalysis = null;
+    try {
+      const gemini = createGeminiProvider();
+      geminiAnalysis = await gemini.analyseContent(normalised);
+    } catch (geminiError) {
+      console.warn('Gemini analysis failed, continuing without qualitative scores:', geminiError);
+    }
+
+    // Combine scores
+    const combinedScore = calculateCombinedScore(rulesAnalysis.score, geminiAnalysis?.overallScore);
 
     return NextResponse.json(
       {
@@ -42,14 +52,19 @@ export async function POST(request: NextRequest) {
           title: title || 'Untitled',
           wordCount,
           characterCount,
+          keywords: keywords || [],
         },
         analysis: {
           metrics,
-          aiLikeness,
-          qualitative: null, // Will be filled by Gemini
+          rules: rulesAnalysis,
+          qualitative: geminiAnalysis,
           combined: {
-            score: aiLikeness.score,
-            riskLevel: aiLikeness.riskLevel,
+            score: combinedScore,
+            riskLevel: getRiskLevel(combinedScore),
+            components: {
+              rules: rulesAnalysis.score,
+              gemini: geminiAnalysis?.overallScore || null,
+            },
           },
         },
         timestamp: new Date().toISOString(),
@@ -67,4 +82,20 @@ export async function POST(request: NextRequest) {
       { status: 500 }
     );
   }
+}
+
+function calculateCombinedScore(rulesScore: number, geminiScore?: number): number {
+  if (geminiScore === null || geminiScore === undefined) {
+    return rulesScore; // Use rules score if Gemini unavailable
+  }
+
+  // Weighted average: 40% rules, 60% Gemini
+  return Math.round(rulesScore * 0.4 + geminiScore * 0.6);
+}
+
+function getRiskLevel(score: number): 'low' | 'moderate' | 'high' | 'very_high' {
+  if (score < 30) return 'low';
+  if (score < 60) return 'moderate';
+  if (score < 80) return 'high';
+  return 'very_high';
 }
