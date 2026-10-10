@@ -20,13 +20,14 @@ export async function POST(request: NextRequest) {
     // Validate request
     const validationResult = ExtractUrlRequestSchema.safeParse(body);
     if (!validationResult.success) {
+      const errors = validationResult.error.flatten();
       return NextResponse.json(
         {
           success: false,
           error: {
             code: 'VALIDATION_ERROR',
             message: 'Invalid request format',
-            details: validationResult.error.errors,
+            details: errors.fieldErrors,
           },
         },
         { status: 400 }

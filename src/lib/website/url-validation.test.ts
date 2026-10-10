@@ -23,7 +23,9 @@ describe('URL Validation & SSRF Protection', () => {
     it('rejects localhost URLs', async () => {
       const result = await validateUrl('http://localhost:3000');
       expect(result.valid).toBe(false);
-      expect(result.error).toContain('not allowed');
+      if (!result.valid) {
+        expect(result.error).toContain('not allowed');
+      }
     });
 
     it('rejects 127.0.0.1 URLs', async () => {
@@ -98,13 +100,17 @@ describe('URL Validation & SSRF Protection', () => {
     it('rejects URLs with unsupported protocols in path', async () => {
       const result = await validateUrl('https://example.com/javascript:alert(1)');
       expect(result.valid).toBe(false);
-      expect(result.error).toContain('blocked protocol');
+      if (!result.valid) {
+        expect(result.error).toContain('blocked protocol');
+      }
     });
 
     it('rejects URLs with port in hostname check', async () => {
       const result = await validateUrl('http://localhost:3000/page');
       expect(result.valid).toBe(false);
-      expect(result.error).toBeDefined();
+      if (!result.valid) {
+        expect(result.error).toBeDefined();
+      }
     });
 
     it('accepts valid HTTPS with www', async () => {
@@ -112,6 +118,9 @@ describe('URL Validation & SSRF Protection', () => {
       // google.com might fail DNS in some environments, but HTTPS is valid
       if (result.valid) {
         expect(result.normalizedUrl).toContain('google.com');
+      } else {
+        // DNS failure is acceptable
+        expect(result.error).toBeDefined();
       }
     });
   });

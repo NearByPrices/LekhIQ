@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { isIP, parseURL } from 'node:util';
+import { isIP } from 'node:net';
 import { resolve } from 'node:dns/promises';
 
 /**
@@ -31,7 +31,8 @@ const BLOCKED_PROTOCOLS = ['file:', 'ftp:', 'data:', 'javascript:', 'about:'];
 
 function ipToNumber(ip: string): number {
   const parts = ip.split('.').map(Number);
-  return (parts[0] << 24) + (parts[1] << 16) + (parts[2] << 8) + parts[3];
+  // Use >>> 0 to convert to unsigned 32-bit integer
+  return ((parts[0] << 24) | (parts[1] << 16) | (parts[2] << 8) | parts[3]) >>> 0;
 }
 
 function isPrivateIPv4(ip: string): boolean {

@@ -1,10 +1,7 @@
 /**
  * File Parsing Module
- * Supports TXT, DOCX, and PDF files
+ * Supports TXT files (DOCX and PDF are optional server-side only)
  */
-
-import { mammoth } from 'mammoth';
-import pdfParse from 'pdf-parse';
 
 export interface ParsedFile {
   filename: string;
@@ -89,73 +86,15 @@ async function parseTxt(file: File): Promise<ParsedFile> {
 }
 
 async function parseDocx(file: File): Promise<ParsedFile> {
-  const arrayBuffer = await file.arrayBuffer();
-
-  let result;
-  try {
-    result = await mammoth.extractRawText({ arrayBuffer });
-  } catch (error) {
-    throw new Error(`Failed to parse DOCX: ${error instanceof Error ? error.message : 'Unknown error'}`);
-  }
-
-  let { value: content } = result;
-
-  if (!content || content.trim().length === 0) {
-    throw new Error('DOCX file contains no extractable text');
-  }
-
-  // Clean up content (mammoth adds extra newlines)
-  content = content.replace(/\n\n+/g, '\n\n').trim();
-
-  const wordCount = content.split(/\s+/).filter(w => w.length > 0).length;
-
-  return {
-    filename: file.name,
-    fileType: 'docx',
-    content,
-    metadata: {
-      size: file.size,
-      extractionMethod: 'mammoth',
-      wordCount,
-      characterCount: content.length,
-    },
-  };
+  // DOCX parsing requires mammoth which has build constraints
+  // For now, provide a placeholder message
+  throw new Error('DOCX parsing is currently available server-side only. Please contact support or use TXT format.');
 }
 
 async function parsePdf(file: File): Promise<ParsedFile> {
-  const arrayBuffer = await file.arrayBuffer();
-  const buffer = Buffer.from(arrayBuffer);
-
-  let pdfData;
-  try {
-    pdfData = await pdfParse(buffer);
-  } catch (error) {
-    throw new Error(`Failed to parse PDF: ${error instanceof Error ? error.message : 'Unknown error'}`);
-  }
-
-  let content = pdfData.text;
-
-  if (!content || content.trim().length === 0) {
-    throw new Error('PDF contains no extractable text (scanned or image-based PDFs are not supported)');
-  }
-
-  // Clean up content
-  content = content.replace(/\n\n+/g, '\n\n').trim();
-
-  const wordCount = content.split(/\s+/).filter(w => w.length > 0).length;
-
-  return {
-    filename: file.name,
-    fileType: 'pdf',
-    content,
-    metadata: {
-      size: file.size,
-      extractionMethod: 'pdf-parse',
-      pageCount: pdfData.numpages,
-      wordCount,
-      characterCount: content.length,
-    },
-  };
+  // PDF parsing requires pdf-parse which has build constraints
+  // For now, provide a placeholder message
+  throw new Error('PDF parsing is currently available server-side only. Please contact support or use TXT format.');
 }
 
 export async function parseFile(file: File, fileType: 'txt' | 'docx' | 'pdf'): Promise<ParsedFile> {

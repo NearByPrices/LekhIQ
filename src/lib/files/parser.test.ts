@@ -6,14 +6,18 @@ describe('File Parser', () => {
     it('rejects null file', () => {
       const result = validateFile(null, 'txt');
       expect(result.valid).toBe(false);
-      expect(result.error).toContain('No file provided');
+      if (!result.valid) {
+        expect(result.error).toContain('No file provided');
+      }
     });
 
     it('rejects empty file', () => {
       const file = new File([], 'empty.txt', { type: 'text/plain' });
       const result = validateFile(file, 'txt');
       expect(result.valid).toBe(false);
-      expect(result.error).toContain('empty');
+      if (!result.valid) {
+        expect(result.error).toContain('empty');
+      }
     });
 
     it('rejects files exceeding size limit', () => {
@@ -21,14 +25,18 @@ describe('File Parser', () => {
       const file = new File([largeContent], 'large.txt', { type: 'text/plain' });
       const result = validateFile(file, 'txt');
       expect(result.valid).toBe(false);
-      expect(result.error).toContain('exceeds limit');
+      if (!result.valid) {
+        expect(result.error).toContain('exceeds limit');
+      }
     });
 
     it('rejects TXT file with wrong extension', () => {
       const file = new File(['content'], 'file.doc', { type: 'text/plain' });
       const result = validateFile(file, 'txt');
       expect(result.valid).toBe(false);
-      expect(result.error).toContain('extension');
+      if (!result.valid) {
+        expect(result.error).toContain('extension');
+      }
     });
 
     it('rejects DOCX file with wrong extension', () => {

@@ -1,5 +1,6 @@
 import { load } from 'cheerio';
 import { Readability } from 'mozilla-readability';
+// @ts-ignore
 import { JSDOM } from 'jsdom';
 import type { CheerioAPI } from 'cheerio';
 
@@ -235,7 +236,9 @@ function evaluateExtractionQuality(content: Omit<ExtractedContent, 'extractionMe
 function extractReadabilityContent(html: string, baseUrl: string): Omit<ExtractedContent, 'extractionMethod' | 'extractionQuality'> | null {
   try {
     const dom = new JSDOM(html, { url: baseUrl });
+    // @ts-ignore - Readability constructor signature varies
     const reader = new Readability(dom.window.document);
+    // @ts-ignore
     const article = reader.parse();
 
     if (!article || !article.content) return null;
