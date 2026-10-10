@@ -3,7 +3,7 @@
 import { useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { Suspense } from 'react';
-import AnalysisResults from '@/components/AnalysisResults';
+import { AnalysisPage } from '@/components/AnalysisPage';
 
 interface AnalysisData {
   contentInfo: any;
@@ -56,8 +56,11 @@ function ResultsContent() {
       <button className="btn btn-outline" onClick={() => (window.location.href = '/')}>
         ← Back to Analyse
       </button>
-      <AnalysisResults
-        contentInfo={results.contentInfo}
+      <AnalysisPage
+        contentInfo={{
+          ...results.contentInfo,
+          originalText: results.contentInfo.text || results.analysis.originalText || '',
+        }}
         metrics={results.analysis.metrics}
         rules={results.analysis.rules}
         qualitative={results.analysis.qualitative}
