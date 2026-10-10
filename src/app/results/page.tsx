@@ -62,6 +62,8 @@ function ResultsContent() {
         rules={results.analysis.rules}
         qualitative={results.analysis.qualitative}
         combined={results.analysis.combined}
+        scores={results.analysis.scores}
+        quality={results.analysis.quality}
       />
     </div>
   );

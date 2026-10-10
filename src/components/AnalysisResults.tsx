@@ -26,13 +26,34 @@ interface AnalysisResultsProps {
     score: number;
     riskLevel: 'low' | 'moderate' | 'high' | 'very_high';
     components: {
+      statistical?: number;
       rules: number;
       gemini: number | null;
     };
   };
+  scores?: {
+    statistical: number;
+    rules: number;
+    gemini: number | null;
+    combined: number;
+  };
+  quality?: {
+    content: number;
+    readability: number;
+    repetition: number;
+    informationDensity: number;
+  };
 }
 
-export default function AnalysisResults({ contentInfo, metrics, rules, qualitative, combined }: AnalysisResultsProps) {
+export default function AnalysisResults({
+  contentInfo,
+  metrics,
+  rules,
+  qualitative,
+  combined,
+  scores,
+  quality
+}: AnalysisResultsProps) {
   const riskColors = {
     low: 'bg-green-100 text-green-900 border-green-300',
     moderate: 'bg-yellow-100 text-yellow-900 border-yellow-300',
@@ -69,13 +90,19 @@ export default function AnalysisResults({ contentInfo, metrics, rules, qualitati
           </div>
           <div className="text-center">
             <div className="text-sm font-semibold">Score Breakdown</div>
-            <div className="text-xs mt-2">
-              Rules: <span className="font-bold">{combined.components.rules}</span>
+            <div className="text-xs mt-2 space-y-1">
+              {(combined.components.statistical !== undefined) && (
+                <div>
+                  Statistical: <span className="font-bold">{combined.components.statistical}</span>
+                </div>
+              )}
+              <div>
+                Rules: <span className="font-bold">{combined.components.rules?.toFixed(0)}</span>
+              </div>
               {combined.components.gemini && (
-                <>
-                  <br />
+                <div>
                   Gemini: <span className="font-bold">{combined.components.gemini}</span>
-                </>
+                </div>
               )}
             </div>
           </div>
@@ -100,6 +127,35 @@ export default function AnalysisResults({ contentInfo, metrics, rules, qualitati
                 </div>
               </div>
             ))}
+          </div>
+        </div>
+      )}
+
+      {/* Quality Scores */}
+      {quality && (
+        <div className="card">
+          <h3 className="text-lg font-semibold mb-4">Content Quality Analysis</h3>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="p-3 bg-blue-50 rounded border border-blue-200">
+              <div className="text-sm text-blue-600 font-medium">Readability</div>
+              <div className="text-3xl font-bold text-blue-700">{quality.readability}</div>
+              <div className="text-xs text-blue-600 mt-1">higher = easier</div>
+            </div>
+            <div className="p-3 bg-purple-50 rounded border border-purple-200">
+              <div className="text-sm text-purple-600 font-medium">Repetition</div>
+              <div className="text-3xl font-bold text-purple-700">{quality.repetition}</div>
+              <div className="text-xs text-purple-600 mt-1">higher = less repetitive</div>
+            </div>
+            <div className="p-3 bg-green-50 rounded border border-green-200">
+              <div className="text-sm text-green-600 font-medium">Info Density</div>
+              <div className="text-3xl font-bold text-green-700">{quality.informationDensity}</div>
+              <div className="text-xs text-green-600 mt-1">higher = more informative</div>
+            </div>
+            <div className="p-3 bg-orange-50 rounded border border-orange-200">
+              <div className="text-sm text-orange-600 font-medium">Overall Quality</div>
+              <div className="text-3xl font-bold text-orange-700">{quality.content}</div>
+              <div className="text-xs text-orange-600 mt-1">composite score</div>
+            </div>
           </div>
         </div>
       )}
