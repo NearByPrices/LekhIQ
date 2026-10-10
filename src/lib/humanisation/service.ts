@@ -54,7 +54,7 @@ export async function humaniseContent(
   // Step 3: Call Gemini for rewriting
   let rewrittenContent: string;
   try {
-    const gemini = createGeminiProvider();
+    const gemini = createGeminiProvider() as any;
     const response = await gemini.rewriteContent(prompt);
     rewrittenContent = response.trim();
   } catch (error) {
@@ -83,7 +83,7 @@ export async function humaniseContent(
     );
 
     try {
-      const gemini = createGeminiProvider();
+      const gemini = createGeminiProvider() as any;
       const retryResponse = await gemini.rewriteContent(retryPrompt);
       const retryContent = retryResponse.trim();
 
