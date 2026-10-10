@@ -3,6 +3,13 @@ import { AnalyseRequestSchema } from '@/lib/validation/schemas';
 import { normaliseContent } from '@/lib/content/normalisation';
 import { evaluateAILikeness } from '@/lib/analysis/ai-likeness-rules';
 import { calculateMetrics } from '@/lib/analysis/metrics';
+import {
+  calculateStatisticalScore,
+  calculateReadabilityScore,
+  calculateRepetitionScore,
+  calculateInformationDensityScore,
+  calculateContentQualityScore,
+} from '@/lib/analysis/quality-scoring';
 import { createGeminiProvider } from '@/lib/ai/providers/gemini';
 import { getDatabaseService } from '@/lib/db/service';
 
@@ -36,17 +43,30 @@ export async function POST(request: NextRequest) {
     const metrics = calculateMetrics(normalised);
     const rulesAnalysis = evaluateAILikeness(normalised);
 
+    // Calculate quality and statistical scores
+    const statisticalScore = calculateStatisticalScore(metrics);
+    const readabilityScore = calculateReadabilityScore(normalised, metrics);
+    const repetitionScore = calculateRepetitionScore(normalised);
+    const informationDensityScore = calculateInformationDensityScore(normalised, metrics);
+    const contentQualityScore = calculateContentQualityScore(normalised, metrics);
+
     // Run Gemini qualitative analysis
     let geminiAnalysis = null;
+    let geminiStatus = 'success';
     try {
       const gemini = createGeminiProvider();
       geminiAnalysis = await gemini.analyseContent(normalised);
     } catch (geminiError) {
       console.warn('Gemini analysis failed, continuing without qualitative scores:', geminiError);
+      geminiStatus = 'failed';
     }
 
-    // Combine scores
-    const combinedScore = calculateCombinedScore(rulesAnalysis.score, geminiAnalysis?.overallScore);
+    // Combine scores with proper weighting: 35% statistical, 40% rules, 25% Gemini
+    const combinedScore = calculateCombinedScore(
+      statisticalScore,
+      rulesAnalysis.score,
+      geminiAnalysis?.overallScore
+    );
 
     // Save to database
     try {
@@ -70,25 +90,37 @@ export async function POST(request: NextRequest) {
       // Save analysis results
       const analysisRunId = await db.saveAnalysisResult({
         contentDocumentId,
-        scoringVersion: 'ai-scoring-v1',
-        statisticalScore: metrics.averageSentenceLength, // Placeholder
+        scoringVersion: 'ai-scoring-v2',
+        statisticalScore,
         ruleScore: rulesAnalysis.score,
         geminiScore: geminiAnalysis?.overallScore,
         finalAiLikenessScore: combinedScore,
-        contentQualityScore: 50, // TODO: Implement quality scoring
-        readabilityScore: 50, // TODO: Implement readability scoring
-        repetitionScore: 50, // TODO: Implement repetition scoring
-        informationDensityScore: 50, // TODO: Calculate from metrics
+        contentQualityScore,
+        readabilityScore,
+        repetitionScore,
+        informationDensityScore,
         resultJson: {
           metrics,
           rules: rulesAnalysis,
           qualitative: geminiAnalysis,
+          scores: {
+            statistical: statisticalScore,
+            rules: rulesAnalysis.score,
+            gemini: geminiAnalysis?.overallScore || null,
+            combined: combinedScore,
+          },
+          quality: {
+            content: contentQualityScore,
+            readability: readabilityScore,
+            repetition: repetitionScore,
+            informationDensity: informationDensityScore,
+          },
           combined: {
             score: combinedScore,
             riskLevel: getRiskLevel(combinedScore),
           },
         },
-        modelName: 'gemini-pro',
+        modelName: process.env.GEMINI_ANALYSIS_MODEL || 'gemini-2.0-flash',
         promptVersion: 'analysis-v1',
       });
 
@@ -111,15 +143,29 @@ export async function POST(request: NextRequest) {
         analysis: {
           metrics,
           rules: rulesAnalysis,
+          scores: {
+            statistical: statisticalScore,
+            rules: rulesAnalysis.score,
+            gemini: geminiAnalysis?.overallScore || null,
+            combined: combinedScore,
+          },
+          quality: {
+            content: contentQualityScore,
+            readability: readabilityScore,
+            repetition: repetitionScore,
+            informationDensity: informationDensityScore,
+          },
           qualitative: geminiAnalysis,
           combined: {
             score: combinedScore,
             riskLevel: getRiskLevel(combinedScore),
             components: {
+              statistical: statisticalScore,
               rules: rulesAnalysis.score,
               gemini: geminiAnalysis?.overallScore || null,
             },
           },
+          geminiStatus,
         },
         timestamp: new Date().toISOString(),
         saved: !!contentDocumentId,
@@ -140,13 +186,21 @@ export async function POST(request: NextRequest) {
   }
 }
 
-function calculateCombinedScore(rulesScore: number, geminiScore?: number): number {
+function calculateCombinedScore(
+  statisticalScore: number,
+  rulesScore: number,
+  geminiScore?: number
+): number {
   if (geminiScore === null || geminiScore === undefined) {
-    return rulesScore; // Use rules score if Gemini unavailable
+    // If Gemini unavailable, use weighted average of statistical and rules only
+    // Reweight to 35% statistical and 65% rules (sum to 100)
+    return Math.round(statisticalScore * 0.35 + rulesScore * 0.65);
   }
 
-  // Weighted average: 40% rules, 60% Gemini
-  return Math.round(rulesScore * 0.4 + geminiScore * 0.6);
+  // Full weighting: 35% statistical, 40% rules, 25% Gemini
+  return Math.round(
+    statisticalScore * 0.35 + rulesScore * 0.4 + geminiScore * 0.25
+  );
 }
 
 function getRiskLevel(score: number): 'low' | 'moderate' | 'high' | 'very_high' {
