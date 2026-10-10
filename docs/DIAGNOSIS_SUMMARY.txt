@@ -1,0 +1,195 @@
+================================================================================
+                    LEKHIQ SUPABASE CONNECTIVITY DIAGNOSIS
+                              FINAL REPORT 2026-10-11
+================================================================================
+
+EXECUTIVE SUMMARY
+-----------------
+✓ Network connectivity to Supabase is FULLY FUNCTIONAL
+✗ DNS resolver misconfiguration found in system defaults
+✓ Workaround available for immediate use
+✓ Production deployment guidance provided
+
+================================================================================
+
+KEY FINDINGS
+------------
+
+TEST RESULTS SUMMARY:
+┌─────────────────────────────────────────────────────────────┐
+│ DNS (Default Resolver)        0/5 ✗  Failed to resolve all │
+│ DNS (Custom Servers)          5/5 ✓  All resolved perfectly│
+│ TCP Connections (Port 443)    3/3 ✓  All established      │
+│ HTTPS Connections            3/3 ✓  All successful       │
+│ Environment Diagnostics       ✓     System info collected│
+└─────────────────────────────────────────────────────────────┘
+
+CRITICAL FINDING:
+  • System default DNS resolver returns ECONNREFUSED
+  • External DNS servers (Google 8.8.8.8, Cloudflare 1.1.1.1) work perfectly
+  • This indicates a LOCAL DNS configuration issue, not a network/firewall issue
+
+================================================================================
+
+ROOT CAUSE ANALYSIS
+-------------------
+
+WHAT'S HAPPENING:
+  Your Windows system's default DNS resolver (likely the Windows DNS cache
+  service or system resolver) is not responding to queries. However, when
+  explicitly using external DNS servers, resolution works perfectly.
+
+POSSIBLE CAUSES:
+  1. Windows DNS Cache Service (dnscache) not running/misconfigured
+  2. Network adapter pointing to unreachable DNS server
+  3. Local firewall/antivirus blocking DNS resolver
+  4. WSL2 or Docker DNS service issues
+  5. Network adapter configuration error
+
+IMPACT ASSESSMENT:
+  ✓ LOCAL DEVELOPMENT: No issue - you can use explicit DNS configuration
+  ✗ CLOUD DEPLOYMENT: May fail if cloud environment has similar DNS issues
+  ⚠ PRODUCTION: Requires explicit DNS configuration to ensure reliability
+
+================================================================================
+
+RECOMMENDED SOLUTIONS (In order of preference)
+----------------------------------------------
+
+SOLUTION 1: Code-Level DNS Configuration (EASIEST)
+  No system changes needed. Add to your Node.js application:
+
+    const dns = require('dns').promises;
+    const resolver = new dns.Resolver();
+    resolver.setServers(['8.8.8.8', '1.1.1.1']);
+    // Use resolver for all DNS queries
+
+  ADVANTAGES:
+    ✓ No system changes required
+    ✓ Works in all environments
+    ✓ Can be environment-specific (dev vs production)
+    ✓ Can add fallback logic
+
+  RECOMMENDED FOR: Local development, testing, and most deployments
+
+================================================================================
+
+SOLUTION 2: System-Level DNS Fix (Windows)
+  Fix DNS through Windows Network Settings (permanent change):
+
+    netsh interface ipv4 set dnsservers name="Wi-Fi" static 8.8.8.8 primary
+    netsh interface ipv4 add dnsservers name="Wi-Fi" 1.1.1.1 index=2
+    ipconfig /flushdns
+
+  ADVANTAGES:
+    ✓ Fixes ALL applications on this system
+    ✓ One-time configuration
+
+  DISADVANTAGES:
+    ✗ Requires administrator privileges
+    ✗ Global change affects all applications
+
+================================================================================
+
+SOLUTION 3: Docker Container Deployment
+  If deploying via Docker, add DNS configuration to Dockerfile:
+
+    FROM node:20
+    RUN echo "nameserver 8.8.8.8" > /etc/resolv.conf
+    RUN echo "nameserver 1.1.1.1" >> /etc/resolv.conf
+    # ... rest of Dockerfile
+
+  Or at runtime:
+
+    docker run --dns 8.8.8.8 --dns 1.1.1.1 your-app:latest
+
+================================================================================
+
+SOLUTION 4: Kubernetes Deployment
+  Configure DNS in Kubernetes pod spec:
+
+    apiVersion: v1
+    kind: Pod
+    metadata:
+      name: lekhiq-app
+    spec:
+      dnsPolicy: "None"
+      dnsConfig:
+        nameservers:
+          - 8.8.8.8
+          - 1.1.1.1
+
+  Or use it in your Deployment/StatefulSet spec's podSpec section.
+
+================================================================================
+
+VERIFICATION & TESTING
+----------------------
+
+After applying any solution, verify the fix:
+
+  node scripts/test-supabase.js
+
+SUCCESS CRITERIA:
+  ✓ All tests in "TEST 1: DNS Resolution (Default Resolver)" show ✓
+  ✓ No ECONNREFUSED errors
+  ✓ All domains resolve successfully
+
+================================================================================
+
+NEXT STEPS FOR SUPABASE INTEGRATION
+------------------------------------
+
+Phase 7 (CURRENT - Network Diagnostics):
+  ✓ DNS issue identified and documented
+  ✓ Workarounds provided
+  ✓ Production deployment guidance created
+
+Phase 8 (NEXT - Supabase Integration):
+  [ ] Create .env.local with Supabase credentials
+  [ ] Install Supabase client: npm install @supabase/supabase-js
+  [ ] Create Supabase service client
+  [ ] Set up database schema in Supabase console
+  [ ] Implement API routes for database operations
+  [ ] Test with fixed DNS configuration
+
+================================================================================
+
+FILES CREATED IN THIS SESSION
+------------------------------
+
+1. scripts/test-supabase.js
+   → Comprehensive network diagnostic tool
+   → Can be run anytime to verify network health
+
+2. docs/EXTERNAL_DEPENDENCIES_DIAGNOSIS.md
+   → Detailed diagnosis with full technical analysis
+   → Solution recommendations for each deployment scenario
+
+3. docs/HANDOFF.md
+   → Phase 7 completion status
+   → Phase 8 checklist
+   → Next steps for Supabase integration
+
+4. docs/diagnostic-report.html
+   → Visual HTML report of all diagnostic findings
+
+5. docs/DIAGNOSIS_SUMMARY.txt
+   → This quick reference summary
+
+================================================================================
+
+ENVIRONMENT INFORMATION
+-----------------------
+Node.js Version: v24.16.0
+Platform: Windows 11 Home Single Language
+Architecture: x64
+Network Interface: Wi-Fi (192.168.1.10)
+Supabase Project: xkihyjzdqgahkuqogqie.supabase.co
+
+================================================================================
+
+DIAGNOSIS COMPLETE ✓
+Ready for Phase 8 - Supabase Integration
+
+================================================================================
