@@ -4,8 +4,11 @@ import { normaliseContent } from '@/lib/content/normalisation';
 import { evaluateAILikeness } from '@/lib/analysis/ai-likeness-rules';
 import { calculateMetrics } from '@/lib/analysis/metrics';
 import { createGeminiProvider } from '@/lib/ai/providers/gemini';
+import { getDatabaseService } from '@/lib/db/service';
 
 export async function POST(request: NextRequest) {
+  let contentDocumentId: string | null = null;
+
   try {
     const body = await request.json();
 
@@ -45,8 +48,59 @@ export async function POST(request: NextRequest) {
     // Combine scores
     const combinedScore = calculateCombinedScore(rulesAnalysis.score, geminiAnalysis?.overallScore);
 
+    // Save to database
+    try {
+      const db = getDatabaseService();
+
+      // Save content document
+      contentDocumentId = await db.saveContentDocument({
+        sourceType: type,
+        sourceUrl: type === 'url' ? content : undefined,
+        title: title || 'Untitled',
+        rawText: content,
+        cleanText: normalised,
+        wordCount,
+        characterCount,
+        metadata: {
+          keywords,
+          analysisDate: new Date().toISOString(),
+        },
+      });
+
+      // Save analysis results
+      const analysisRunId = await db.saveAnalysisResult({
+        contentDocumentId,
+        scoringVersion: 'ai-scoring-v1',
+        statisticalScore: metrics.averageSentenceLength, // Placeholder
+        ruleScore: rulesAnalysis.score,
+        geminiScore: geminiAnalysis?.overallScore,
+        finalAiLikenessScore: combinedScore,
+        contentQualityScore: 50, // TODO: Implement quality scoring
+        readabilityScore: 50, // TODO: Implement readability scoring
+        repetitionScore: 50, // TODO: Implement repetition scoring
+        informationDensityScore: 50, // TODO: Calculate from metrics
+        resultJson: {
+          metrics,
+          rules: rulesAnalysis,
+          qualitative: geminiAnalysis,
+          combined: {
+            score: combinedScore,
+            riskLevel: getRiskLevel(combinedScore),
+          },
+        },
+        modelName: 'gemini-pro',
+        promptVersion: 'analysis-v1',
+      });
+
+      console.log(`✓ Analysis saved: ${analysisRunId}`);
+    } catch (dbError) {
+      console.warn('Database save failed, returning analysis without persistence:', dbError);
+      // Don't fail the API call - still return analysis even if DB save fails
+    }
+
     return NextResponse.json(
       {
+        id: contentDocumentId,
         contentInfo: {
           type,
           title: title || 'Untitled',
@@ -68,6 +122,7 @@ export async function POST(request: NextRequest) {
           },
         },
         timestamp: new Date().toISOString(),
+        saved: !!contentDocumentId,
       },
       { status: 200 }
     );
@@ -78,6 +133,7 @@ export async function POST(request: NextRequest) {
         error: 'Analysis failed',
         code: 'ANALYSIS_ERROR',
         details: error instanceof Error ? { message: error.message } : {},
+        saved: false,
       },
       { status: 500 }
     );
