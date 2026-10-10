@@ -1,16 +1,22 @@
 # LekhIQ - Development Guide
 
 ## Project Overview
-LekhIQ is a content-analysis and content-improvement tool designed for internal development and testing. It helps users:
-- Analyse writing quality and AI-likeness characteristics
-- Identify readability issues and repetition
-- Humanise content with Professional Indian English
-- Validate and preserve key information
+LekhIQ is an **internal testing build** for content analysis and improvement. Current capabilities:
+- Analyse writing quality and AI-likeness characteristics (deterministic analysis)
+- Identify readability issues and repetition patterns
+- Humanise content with Professional Indian English (structure in place, not yet integrated to UI)
+- Validate and preserve key information (infrastructure ready)
 
 ## Current Status
 **Branch**: `claude/affectionate-newton-6wvs6u`
-**Phase**: 0 - Foundation (in progress)
-**Last Updated**: 2026-10-09
+**Phase**: 6 - STABILIZATION IN PROGRESS
+**Build Status**: Internal testing build (not production-ready)
+**Last Updated**: 2026-10-10
+
+**CRITICAL LIMITATIONS**:
+- Gemini API currently unavailable (gracefully degraded)
+- Supabase persistence has network connectivity issue
+- See docs/BUGS_AND_LIMITATIONS.md for details
 
 ## Technology Stack
 - **Frontend**: Next.js 16, React 19, TypeScript, Tailwind CSS

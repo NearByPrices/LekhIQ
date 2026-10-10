@@ -1,11 +1,27 @@
 # LekhIQ - Project State
 
-**Last Updated**: 2026-10-10
-**Current Branch**: `claude/affectionate-newton-6wvs6u`
-**Latest Commit**: Phase 6 - History Page & Quality Scoring
+**Last Updated**: 2026-10-10  
+**Current Branch**: `claude/affectionate-newton-6wvs6u`  
+**Build Type**: Internal Testing Build (NOT production-ready)  
+**Status**: STABILIZATION IN PROGRESS
+
+## ⚠️ CRITICAL LIMITATIONS
+
+1. **Gemini API Unavailable**: All models return 404 (API key issue)
+   - Status: Gracefully degraded (no fake scores)
+   - Workaround: System functions with deterministic analysis only
+   - See docs/BUGS_AND_LIMITATIONS.md
+
+2. **Supabase Persistence**: Network fetch errors
+   - Status: Affects data persistence only, analysis still works
+   - Workaround: Analyses complete but not saved to database
+   - See docs/BUGS_AND_LIMITATIONS.md
+
+**These limitations must be resolved before production use.**
 
 ## Current Phase
-**PHASE 6**: History Management & Enhanced Scoring - COMPLETE ✓
+**PHASE 6**: Analysis Stabilization - IN PROGRESS  
+*(Previously labeled as "complete" - now stabilizing and fixing issues)*
 
 ## Implementation Status
 
