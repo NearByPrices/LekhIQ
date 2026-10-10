@@ -1,4 +1,4 @@
-import { createSupabaseServerClient } from './supabase';
+import { createSupabaseServiceClient } from './supabase';
 import { ContentDocument, AnalysisRun } from '@/types/database';
 
 export interface SaveAnalysisInput {
@@ -31,7 +31,7 @@ export interface SaveAnalysisResultInput {
 export class DatabaseService {
   async saveContentDocument(input: SaveAnalysisInput): Promise<string> {
     try {
-      const supabase = await createSupabaseServerClient();
+      const supabase = createSupabaseServiceClient();
 
       const { data, error } = await supabase
         .from('content_documents')
@@ -51,7 +51,9 @@ export class DatabaseService {
         .single();
 
       if (error) {
-        throw new Error(`Failed to save content: ${error.message}`);
+        const errorMsg = `Supabase insert error: ${error.message} (code: ${error.code})`;
+        console.error(errorMsg);
+        throw new Error(errorMsg);
       }
 
       if (!data?.id) {
@@ -61,14 +63,15 @@ export class DatabaseService {
       console.log(`✓ Saved content_document: ${data.id}`);
       return data.id;
     } catch (error) {
-      console.error('Error saving content document:', error);
+      const msg = error instanceof Error ? error.message : String(error);
+      console.error('Error saving content document:', msg);
       throw error;
     }
   }
 
   async saveAnalysisResult(input: SaveAnalysisResultInput): Promise<string> {
     try {
-      const supabase = await createSupabaseServerClient();
+      const supabase = createSupabaseServiceClient();
 
       const { data, error } = await supabase
         .from('analysis_runs')
@@ -110,7 +113,7 @@ export class DatabaseService {
 
   async getContentDocument(id: string): Promise<ContentDocument | null> {
     try {
-      const supabase = await createSupabaseServerClient();
+      const supabase = createSupabaseServiceClient();
 
       const { data, error } = await supabase
         .from('content_documents')
@@ -134,7 +137,7 @@ export class DatabaseService {
 
   async getAnalysisResult(id: string): Promise<AnalysisRun | null> {
     try {
-      const supabase = await createSupabaseServerClient();
+      const supabase = createSupabaseServiceClient();
 
       const { data, error } = await supabase
         .from('analysis_runs')
@@ -158,7 +161,7 @@ export class DatabaseService {
 
   async getRecentDocuments(limit: number = 10): Promise<ContentDocument[]> {
     try {
-      const supabase = await createSupabaseServerClient();
+      const supabase = createSupabaseServiceClient();
 
       const { data, error } = await supabase
         .from('content_documents')
@@ -179,7 +182,7 @@ export class DatabaseService {
 
   async getDocumentWithAnalysis(id: string) {
     try {
-      const supabase = await createSupabaseServerClient();
+      const supabase = createSupabaseServiceClient();
 
       const { data: document, error: docError } = await supabase
         .from('content_documents')
