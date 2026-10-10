@@ -65,6 +65,18 @@ export class GeminiProvider implements AIProvider {
     }
   }
 
+  async rewriteContent(fullPrompt: string): Promise<string> {
+    try {
+      const model = this.client.getGenerativeModel({ model: this.rewriteModel });
+      const result = await model.generateContent(fullPrompt);
+      const responseText = result.response.text();
+      return responseText;
+    } catch (error) {
+      console.error('Gemini rewrite error:', error instanceof Error ? error.message : String(error));
+      throw error;
+    }
+  }
+
   async humaniseContent(
     text: string,
     mode: 'light' | 'natural' | 'deep',
