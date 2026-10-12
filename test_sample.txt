@@ -1,0 +1,21 @@
+This is a test sample document for file upload testing.
+
+The document contains multiple sections to verify proper parsing and analysis.
+
+Section 1: Basic Content
+This section demonstrates that the file upload functionality works correctly with plain text files. The content here is intentionally generic to ensure the analysis engine processes it without errors.
+
+Section 2: Technical Information
+Technical content testing is important. We need to verify that model numbers like ABC-123, prices like ₹99,999, and percentages like 25% are properly handled.
+
+Section 3: Contact Information
+For inquiries, please contact us at support@example.com or call +91 98765 43210. Visit our website at https://www.example.com for more information.
+
+Section 4: Long Content Simulation
+This section simulates longer content to test how the system handles multi-paragraph documents. The analysis should capture all metrics accurately even when the document grows in size.
+
+Some additional details about the product include its durability, performance metrics, and customer satisfaction ratings. These are important factors when considering a purchase decision.
+
+The implementation should preserve all key information while still being able to suggest improvements in writing quality and naturalness.
+
+This concludes the test sample document.

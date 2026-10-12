@@ -1,6 +1,6 @@
 /**
  * File Parsing Module
- * Supports TXT files (DOCX and PDF are optional server-side only)
+ * Supports TXT, DOCX (via Mammoth), and PDF (via pdf-parse)
  */
 
 export interface ParsedFile {
@@ -70,7 +70,7 @@ async function parseTxt(file: File): Promise<ParsedFile> {
     throw new Error('TXT file contains no readable text');
   }
 
-  const wordCount = content.split(/\s+/).filter(w => w.length > 0).length;
+  const wordCount = content.split(/\s+/).filter((w: string) => w.length > 0).length;
 
   return {
     filename: file.name,
@@ -86,15 +86,83 @@ async function parseTxt(file: File): Promise<ParsedFile> {
 }
 
 async function parseDocx(file: File): Promise<ParsedFile> {
-  // DOCX parsing requires mammoth which has build constraints
-  // For now, provide a placeholder message
-  throw new Error('DOCX parsing is currently available server-side only. Please contact support or use TXT format.');
+  try {
+    // @ts-ignore - mammoth typing
+    const mammoth = await import('mammoth');
+    const arrayBuffer = await file.arrayBuffer();
+    const result = await mammoth.extractRawText({ arrayBuffer });
+
+    if (!result.value || result.value.trim().length === 0) {
+      throw new Error('DOCX file contains no readable text');
+    }
+
+    const content = result.value.trim();
+    const wordCount = content.split(/\s+/).filter((w: string) => w.length > 0).length;
+
+    return {
+      filename: file.name,
+      fileType: 'docx',
+      content,
+      metadata: {
+        size: file.size,
+        extractionMethod: 'mammoth',
+        wordCount,
+        characterCount: content.length,
+      },
+    };
+  } catch (error) {
+    const msg = error instanceof Error ? error.message : String(error);
+    throw new Error(`Failed to parse DOCX: ${msg}`);
+  }
 }
 
 async function parsePdf(file: File): Promise<ParsedFile> {
-  // PDF parsing requires pdf-parse which has build constraints
-  // For now, provide a placeholder message
-  throw new Error('PDF parsing is currently available server-side only. Please contact support or use TXT format.');
+  try {
+    // @ts-ignore - pdf-parse typing
+    const pdfParseModule = await import('pdf-parse');
+    // @ts-ignore - default export handling
+    const pdfParse = pdfParseModule.default || pdfParseModule;
+    const arrayBuffer = await file.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
+
+    let result;
+    try {
+      result = await pdfParse(buffer);
+    } catch (parseError) {
+      const msg = parseError instanceof Error ? parseError.message : String(parseError);
+      if (msg.includes('Encrypted') || msg.includes('encrypted')) {
+        throw new Error('PDF is encrypted or password-protected. Please decrypt it first.');
+      }
+      throw parseError;
+    }
+
+    const content = result.text || '';
+
+    if (!content.trim()) {
+      throw new Error('PDF appears to be scanned or image-based. Text could not be extracted. Scanned or image-based PDFs are not currently supported.');
+    }
+
+    const wordCount = content.split(/\s+/).filter((w: string) => w.length > 0).length;
+
+    return {
+      filename: file.name,
+      fileType: 'pdf',
+      content: content.trim(),
+      metadata: {
+        size: file.size,
+        extractionMethod: 'pdf-parse',
+        pageCount: result.numpages || undefined,
+        wordCount,
+        characterCount: content.length,
+      },
+    };
+  } catch (error) {
+    const msg = error instanceof Error ? error.message : String(error);
+    if (msg.includes('scanned') || msg.includes('image-based')) {
+      throw error;
+    }
+    throw new Error(`Failed to parse PDF: ${msg}`);
+  }
 }
 
 export async function parseFile(file: File, fileType: 'txt' | 'docx' | 'pdf'): Promise<ParsedFile> {
@@ -103,19 +171,15 @@ export async function parseFile(file: File, fileType: 'txt' | 'docx' | 'pdf'): P
     throw new Error(validation.error);
   }
 
-  try {
-    switch (fileType) {
-      case 'txt':
-        return await parseTxt(file);
-      case 'docx':
-        return await parseDocx(file);
-      case 'pdf':
-        return await parsePdf(file);
-      default:
-        throw new Error(`Unsupported file type: ${fileType}`);
-    }
-  } catch (error) {
-    throw error;
+  switch (fileType) {
+    case 'txt':
+      return await parseTxt(file);
+    case 'docx':
+      return await parseDocx(file);
+    case 'pdf':
+      return await parsePdf(file);
+    default:
+      throw new Error(`Unsupported file type: ${fileType}`);
   }
 }
 
